@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>COS Agent — Flotte Navette Abidjan</title>
+<link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/@tabler/icons-webfont@3.19.0/dist/tabler-icons.min.css">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{
+  --bg:#ffffff;--bg2:#f8f8f7;--bg3:#f0efe9;
+  --text:#1a1a1a;--text2:#666;--text3:#999;
+  --border:#e5e5e0;--border2:#d0d0ca;
+  --green:#3B6D11;--green-bg:#EAF3DE;
+  --amber:#854F0B;--amber-bg:#FAEEDA;
+  --blue:#0C447C;--blue-bg:#E6F1FB;
+  --red:#A32D2D;--red-bg:#FCEBEB;
+  --accent:#1a1a1a;
+  --radius:10px;--radius-sm:7px;
+  font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',sans-serif;
+}
+body{background:var(--bg);color:var(--text);min-height:100vh}
+
+/* LAYOUT */
+.shell{display:grid;grid-template-columns:340px 1fr;height:100vh;overflow:hidden}
+.sidebar{border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.main{display:flex;flex-direction:column;overflow:hidden}
+
+/* SIDEBAR HEADER */
+.sidebar-header{padding:16px;border-bottom:1px solid var(--border)}
+.sidebar-header h1{font-size:15px;font-weight:600;margin-bottom:2px}
+.sidebar-header p{font-size:12px;color:var(--text2)}
+.mode-tabs{display:flex;gap:4px;margin-top:12px}
+.mode-tab{flex:1;padding:6px 8px;font-size:12px;font-weight:500;color:var(--text2);border:1px solid var(--border);border-radius:var(--radius-sm);background:transparent;cursor:pointer;text-align:center;transition:all .15s}
+.mode-tab.active{background:var(--text);color:#fff;border-color:var(--text)}
+
+/* MANUAL FORM */
+.form-panel{flex:1;overflow-y:auto;padding:14px}
+.form-section{margin-bottom:14px}
+.form-section-label{font-size:10px;font-weight:600;letter-spacing:.06em;text-transform:uppercase;color:var(--text3);margin-bottom:8px}
+.field{margin-bottom:8px}
+.field label{display:block;font-size:12px;color:var(--text2);margin-bottom:3px}
+.field input,.field select{width:100%;height:32px;padding:0 9px;border:1px solid var(--border2);border-radius:var(--radius-sm);background:var(--bg);color:var(--text);font-size:13px}
+.field input:focus,.field select:focus{outline:2px solid #378ADD;outline-offset:1px}
+.toggle-row{display:flex;gap:4px}
+.tbtn{flex:1;padding:5px 6px;font-size:11px;font-weight:500;color:var(--text2);border:1px solid var(--border2);border-radius:var(--radius-sm);background:transparent;cursor:pointer;transition:all .15s;text-align:center}
+.tbtn.on{background:var(--blue-bg);border-color:#85B7EB;color:var(--blue);font-weight:600}
+.calc-btn{width:100%;padding:9px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);font-size:13px;font-weight:600;cursor:pointer;margin-top:6px}
+.calc-btn:hover{background:#333}
+
+/* MAIN TOP NAV */
+.main-nav{padding:12px 20px;border-bottom:1px solid var(--border);display:flex;align-items:center;gap:6px}
+.nav-tab{padding:6px 14px;font-size:13px;font-weight:500;color:var(--text2);border:none;background:transparent;cursor:pointer;border-radius:var(--radius-sm)}
+.nav-tab.active{background:var(--bg2);color:var(--text);font-weight:600}
+.nav-tab:hover:not(.active){background:var(--bg3)}
+
+/* PAGES */
+.page{display:none;flex:1;overflow-y:auto;padding:20px}
+.page.active{display:block}
+
+/* RESULTS CARDS */
+.results-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+.rcard{background:var(--bg2);border-radius:var(--radius-sm);padding:12px}
+.rcard.g{background:var(--green-bg)}.rcard.g .rval{color:var(--green)}
+.rcard.a{background:var(--amber-bg)}.rcard.a .rval{color:var(--amber)}
+.rcard.b{background:var(--blue-bg)}.rcard.b .rval{color:var(--blue)}
+.rlbl{font-size:11px;color:var(--text2);margin-bottom:3px}
+.rval{font-size:18px;font-weight:600;color:var(--text)}
+.rsub{font-size:10px;color:var(--text3);margin-top:2px}
+.section-box{background:var(--bg);border:1px solid var(--border);border-radius:var(--radius);padding:16px;margin-bottom:14px}
+.section-box h3{font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.06em;color:var(--text3);margin-bottom:12px}
+table{width:100%;border-collapse:collapse;font-size:13px}
+th{font-size:11px;font-weight:600;color:var(--text2);padding:6px 10px;border-bottom:1px solid var(--border);text-align:left}
+td{padding:8px 10px;border-bottom:1px solid var(--border);color:var(--text)}
+td.r{text-align:right;font-weight:500}
+tr:last-child td{border-bottom:none}
+tr.ttl td{font-weight:700;background:var(--bg2)}
+.fuel-info{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--text2);background:var(--bg2);border-radius:var(--radius-sm);padding:9px 12px;margin-bottom:12px}
+.fuel-info b{color:var(--text)}
+.tag{display:inline-block;font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600;margin-left:4px}
+.tag.red{background:var(--red-bg);color:var(--red)}
+.tag.grn{background:var(--green-bg);color:var(--green)}
+.empty-state{text-align:center;padding:60px 20px;color:var(--text3)}
+.empty-state i{font-size:40px;display:block;margin-bottom:12px;opacity:.4}
+.empty-state p{font-size:14px}
+
+/* COMPARE PAGE */
+.scen-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin-bottom:16px}
+.scen-card{border:1px solid var(--border);border-radius:var(--radius);padding:14px}
+.scen-card.best{border-color:#639922;border-width:2px}
+.scen-name{font-size:13px;font-weight:600;margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.badge{font-size:10px;padding:2px 7px;border-radius:4px;font-weight:600}
+.badge.best{background:var(--green-bg);color:var(--green)}
+.badge.mid{background:var(--amber-bg);color:var(--amber)}
+.badge.hi{background:var(--red-bg);color:var(--red)}
+.scen-metrics{display:grid;grid-template-columns:1fr 1fr;gap:6px}
+.sm{background:var(--bg2);border-radius:5px;padding:8px}
+.sm-l{font-size:10px;color:var(--text2);margin-bottom:2px}
+.sm-v{font-size:14px;font-weight:600}
+.add-scen{border:1px dashed var(--border2);border-radius:var(--radius);padding:14px;text-align:center;font-size:13px;color:var(--text2);cursor:pointer;background:transparent;width:100%}
+.add-scen:hover{background:var(--bg2)}
+
+/* AI CHAT PAGE */
+.chat-page{display:none;flex-direction:column;flex:1;overflow:hidden}
+.chat-page.active{display:flex}
+.chat-messages{flex:1;overflow-y:auto;padding:20px;display:flex;flex-direction:column;gap:14px}
+.msg{max-width:85%;display:flex;flex-direction:column;gap:4px}
+.msg.user{align-self:flex-end}
+.msg.ai{align-self:flex-start}
+.bubble{padding:10px 14px;border-radius:12px;font-size:13px;line-height:1.6}
+.msg.user .bubble{background:var(--text);color:#fff;border-bottom-right-radius:3px}
+.msg.ai .bubble{background:var(--bg2);color:var(--text);border-bottom-left-radius:3px;border:1px solid var(--border)}
+.msg-time{font-size:10px;color:var(--text3);padding:0 4px}
+.ai-result-card{border:1px solid var(--border);border-radius:var(--radius);overflow:hidden;font-size:12px;margin-top:8px;background:var(--bg)}
+.ai-result-card .arc-header{background:var(--bg2);padding:10px 14px;font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.05em;color:var(--text2);border-bottom:1px solid var(--border)}
+.arc-body{padding:12px 14px}
+.arc-grid{display:grid;grid-template-columns:repeat(2,1fr);gap:6px;margin-bottom:10px}
+.arc-metric{background:var(--bg2);border-radius:5px;padding:8px}
+.arc-metric.g{background:var(--green-bg)}.arc-metric.g .arc-val{color:var(--green)}
+.arc-metric.a{background:var(--amber-bg)}.arc-metric.a .arc-val{color:var(--amber)}
+.arc-metric.b{background:var(--blue-bg)}.arc-metric.b .arc-val{color:var(--blue)}
+.arc-lbl{font-size:10px;color:var(--text2);margin-bottom:2px}
+.arc-val{font-size:15px;font-weight:700}
+.arc-analysis{font-size:12px;color:var(--text2);line-height:1.6;border-top:1px solid var(--border);padding-top:10px;margin-top:6px}
+.arc-assumptions{font-size:11px;color:var(--text3);margin-top:8px}
+.arc-assumptions span{display:inline-block;background:var(--bg2);border-radius:4px;padding:2px 7px;margin:2px}
+.arc-alert{background:var(--amber-bg);color:var(--amber);border-radius:5px;padding:7px 10px;font-size:11px;margin-top:6px;display:flex;align-items:flex-start;gap:6px}
+.typing-indicator{display:flex;gap:4px;align-items:center;padding:12px 16px}
+.dot{width:6px;height:6px;border-radius:50%;background:var(--text3);animation:blink 1.2s infinite}
+.dot:nth-child(2){animation-delay:.2s}
+.dot:nth-child(3){animation-delay:.4s}
+@keyframes blink{0%,80%,100%{opacity:.2}40%{opacity:1}}
+
+/* CHAT INPUT */
+.chat-input-area{padding:14px 20px;border-top:1px solid var(--border);display:flex;gap:8px}
+.chat-input-area textarea{flex:1;padding:9px 12px;border:1px solid var(--border2);border-radius:var(--radius-sm);font-size:13px;resize:none;height:40px;font-family:inherit;line-height:1.4;color:var(--text);background:var(--bg)}
+.chat-input-area textarea:focus{outline:2px solid #378ADD;outline-offset:1px}
+.send-btn{width:40px;height:40px;background:var(--text);color:#fff;border:none;border-radius:var(--radius-sm);cursor:pointer;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.send-btn:disabled{background:var(--bg3);color:var(--text3);cursor:not-allowed}
+.suggestions{display:flex;flex-wrap:wrap;gap:6px;padding:0 20px 12px}
+.sug{padding:5px 12px;background:var(--bg2);border:1px solid var(--border);border-radius:20px;font-size:11px;color:var(--text2);cursor:pointer;white-space:nowrap}
+.sug:hover{background:var(--bg3);color:var(--text)}
+</style>
+</head>
+<body>
+<div class="shell">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="sidebar-header">
+      <h1><i class="ti ti-bus" style="font-size:16px;vertical-align:-2px;margin-right:4px"></i> COS Fleet Calculator</h1>
+      <p>Cost of Supply — Flotte Navette Abidjan</p>
+      <div class="mode-tabs">
+        <button class="mode-tab active" onclick="setMode('manual')">Saisie manuelle</button>
+        <button class="mode-tab" onclick="setMode('ai')">Agent IA</button>
+      </div>
+    </div>
+
+    <div class="form-panel" id="manual-panel">
+      <div class="form-section">
+        <div class="form-section-label">Véhicule & location</div>
+        <div class="field"><label>Places (capacité)</label><input type="number" id="seats" value="14" min="1"></div>
+        <div class="field"><label>Prix location / jour (XOF)</label><input type="number" id="rent" value="20000" step="500"></div>
+        <div class="field">
+          <label>Carburant</label>
+          <div class="toggle-row">
+            <button class="tbtn on" id="tbtn-no" onclick="setFuel(false)">Sans (à ma charge)</button>
+            <button class="tbtn" id="tbtn-yes" onclick="setFuel(true)">Inclus</button>
+          </div>
+        </div>
+      </div>
+      <div id="fuel-section" class="form-section">
+        <div class="form-section-label">Paramètres carburant</div>
+        <div class="field"><label>Distance A/R (km)</label><input type="number" id="dist" value="60"></div>
+        <div class="field"><label>Voyages / jour</label><input type="number" id="trips" value="2"></div>
+        <div class="field"><label>Consommation (L/100km)</label><input type="number" id="conso" value="12" step="0.5"></div>
+        <div class="field"><label>Prix carburant (XOF/L)</label><input type="number" id="fprice" value="670" step="10"></div>
+      </div>
+      <div class="form-section">
+        <div class="form-section-label">Paramètres financiers</div>
+        <div class="field"><label>Jours travaillés / mois</label><input type="number" id="daysmonth" value="22"></div>
+        <div class="field"><label>Marge bénéficiaire (%)</label><input type="number" id="margin" value="20"></div>
+        <div class="field"><label>Break-even utilisation (%)</label><input type="number" id="breakeven" value="70"></div>
+        <div class="field"><label>Autres frais / jour (XOF)</label><input type="number" id="othercosts" value="0" step="500"></div>
+      </div>
+      <button class="calc-btn" onclick="calcManual()"><i class="ti ti-calculator" style="margin-right:6px"></i>Calculer le COS</button>
+    </div>
+
+    <div id="ai-panel" style="display:none;flex:1;padding:14px">
+      <div style="font-size:12px;color:var(--text2);background:var(--blue-bg);border-radius:var(--radius-sm);padding:10px;line-height:1.6">
+        <b style="color:var(--blue)">Agent IA activé</b><br>
+        Décrivez votre scénario en français, l'agent calculera automatiquement le COS, la marge, et le prix par siège.
+      </div>
+      <div style="margin-top:12px;font-size:12px;color:var(--text3)">Exemples de questions :</div>
+      <div style="margin-top:6px;display:flex;flex-direction:column;gap:6px;font-size:12px;color:var(--text2)">
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;cursor:pointer;border:1px solid var(--border)" onclick="useSuggestion(this.innerText)">Bus 14 places à 20 000 XOF/j sans carburant, 30km aller, 2 voyages, marge 20%</div>
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;cursor:pointer;border:1px solid var(--border)" onclick="useSuggestion(this.innerText)">Location mensuelle 880 000 XOF pour un coaster 30 places avec carburant inclus, 25km</div>
+        <div style="background:var(--bg2);border-radius:6px;padding:8px;cursor:pointer;border:1px solid var(--border)" onclick="useSuggestion(this.innerText)">Minivan 6 places 30 000 XOF par jour carburant non inclus, quelle marge me conseilles-tu ?</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN CONTENT -->
+  <div class="main">
+    <div class="main-nav" id="main-nav">
+      <button class="nav-tab active" onclick="showPage('results-page')"><i class="ti ti-chart-bar" style="margin-right:4px;font-size:13px"></i>Résultats</button>
+      <button class="nav-tab" onclick="showPage('recap-page')"><i class="ti ti-table" style="margin-right:4px;font-size:13px"></i>Récapitulatif</button>
+      <button class="nav-tab" onclick="showPage('compare-page')"><i class="ti ti-columns" style="margin-right:4px;font-size:13px"></i>Comparaison</button>
+    </div>
+
+    <!-- RESULTS PAGE -->
+    <div class="page active" id="results-page">
+      <div id="results-empty" class="empty-state">
+        <i class="ti ti-calculator"></i>
+        <p>Saisissez vos paramètres et cliquez sur <b>Calculer le COS</b><br>ou activez l'<b>Agent IA</b> pour décrire votre scénario.</p>
+      </div>
+      <div id="results-content" style="display:none">
+        <div id="fuel-info-bar" class="fuel-info"></div>
+        <div class="results-grid" id="cards-costs"></div>
+        <div class="results-grid" id="cards-pricing"></div>
+      </div>
+    </div>
+
+    <!-- RECAP PAGE -->
+    <div class="page" id="recap-page">
+      <div id="recap-empty" class="empty-state"><i class="ti ti-table"></i><p>Lancez un calcul pour voir le récapitulatif mensuel.</p></div>
+      <div id="recap-content" style="display:none">
+        <div class="section-box">
+          <h3>Récapitulatif mensuel</h3>
+          <table>
+            <thead><tr><th>Poste</th><th style="text-align:right">Par jour (XOF)</th><th style="text-align:right">Par mois (XOF)</th></tr></thead>
+            <tbody id="recap-body"></tbody>
+          </table>
+        </div>
+        <div class="section-box">
+          <h3>Formules utilisées</h3>
+          <table>
+            <tbody>
+              <tr><td style="color:var(--text2)">Coût carburant / jour</td><td class="r">km A/R × voyages × conso / 100 × prix/L</td></tr>
+              <tr><td style="color:var(--text2)">COS total / jour</td><td class="r">Location + Carburant + Autres frais</td></tr>
+              <tr><td style="color:var(--text2)">Prix de vente (SP)</td><td class="r">COS mois ÷ (1 − marge %)</td></tr>
+              <tr><td style="color:var(--text2)">Ticket A/R</td><td class="r">SP ÷ (BEU% × places × jours)</td></tr>
+              <tr><td style="color:var(--text2)">Ticket aller simple</td><td class="r">Ticket A/R ÷ 2</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+
+    <!-- COMPARE PAGE -->
+    <div class="page" id="compare-page">
+      <div id="scen-cards" class="scen-grid"></div>
+      <button class="add-scen" onclick="addScenario()"><i class="ti ti-plus" style="margin-right:4px"></i> Ajouter un scénario à comparer</button>
+      <div class="section-box" id="comp-table-wrap" style="display:none;margin-top:16px">
+        <h3>Tableau comparatif</h3>
+        <div style="overflow-x:auto"><table id="comp-table"></table></div>
+      </div>
+    </div>
+
+    <!-- AI CHAT PAGE -->
+    <div class="chat-page" id="ai-chat-page">
+      <div class="chat-messages" id="chat-messages">
+        <div class="msg ai">
+          <div class="bubble">
+            Bonjour ! Je suis votre agent COS pour la gestion de flotte navette à Abidjan.<br><br>
+            Décrivez-moi votre scénario de location (prix, places, distance, carburant inclus ou non) et je calcule automatiquement votre <b>coût de revient, marge, et prix par siège</b>.
+          </div>
+          <div class="msg-time">Agent COS</div>
+        </div>
+      </div>
+      <div class="suggestions" id="suggestions">
+        <div class="sug" onclick="sendSuggestion(this)">Bus 14 places 20 000 XOF/j sans carburant</div>
+        <div class="sug" onclick="sendSuggestion(this)">Coaster 30 places 880k XOF/mois carburant inclus</div>
+        <div class="sug" onclick="sendSuggestion(this)">Minivan 6 places 30 000 XOF/j, quelle marge ?</div>
+        <div class="sug" onclick="sendSuggestion(this)">Comparer 14 places 20k vs 40k XOF</div>
+      </div>
+      <div class="chat-input-area">
+        <textarea id="chat-input" placeholder="Décrivez votre scénario de location..." onkeydown="handleKey(event)"></textarea>
+        <button class="send-btn" id="send-btn" onclick="sendMessage()"><i class="ti ti-send" style="font-size:18px"></i></button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+const fmt = n => Math.round(n).toLocaleString('fr-FR');
+let fuelIncluded = false;
+let scenarios = [];
+let currentResult = null;
+
+const SYSTEM_PROMPT = `Tu es un expert en gestion de flotte de transport et en calcul de coût de revient (Cost of Supply / COS) pour le marché d'Abidjan, Côte d'Ivoire.
+
+FORMULES OBLIGATOIRES:
+- kmParJour = distanceAR * voyagesParJour
+- litresParJour = (kmParJour * consoL100) / 100
+- coutCarburantJour = carburantInclus ? 0 : litresParJour * prixCarburantXOF
+- cosJour = locationJour + coutCarburantJour + autresFraisJour
+- cosMois = cosJour * joursMois
+- sp = cosMois / (1 - marge / 100)
+- coutParSiege = cosJour / places
+- ticketAR = sp / ((beu / 100) * places * joursMois)
+- ticketSimple = ticketAR / 2
+
+CONVERSION: si prix donné par mois → locationJour = prixMensuel / joursMois
+
+VALEURS PAR DÉFAUT si non précisées:
+- consoL100: 12 pour bus/coaster, 9 pour minivan 6-9 places
+- prixCarburantXOF: 670 XOF/L
+- joursMois: 22
+- marge: 20%
+- beu: 70%
+- autresFrais: 0
+- voyagesParJour: 2
+- distanceAR: si distance aller mentionnée × 2, sinon 60km
+
+RECOMMANDATIONS:
+- Marge < 15%: risque élevé, déconseillé
+- Marge 20-25%: standard marché Abidjan
+- Marge > 30%: bon positionnement
+- Ticket aller simple < 500 XOF: vérifier les paramètres
+- BEU optimal: 70-80%
+
+Réponds UNIQUEMENT en JSON valide, sans markdown, sans texte avant ou après:
+{
+  "params": {"seats":number,"rentPerDay":number,"fuelIncluded":boolean,"distAR":number,"trips":number,"consoL100":number,"fuelPriceXOF":number,"daysPerMonth":number,"margin":number,"beu":number,"otherCosts":number},
+  "assumptions": ["hypothèse 1","hypothèse 2"],
+  "results": {"kmPerDay":number,"litresPerDay":number,"fuelCostDay":number,"cosDay":number,"cosMonth":number,"sp":number,"costPerSeat":number,"ticketRound":number,"ticketOne":number},
+  "analysis": "Analyse en 2-3 phrases claires en français",
+  "alerts": ["alerte si nécessaire"]
+}`;
+
+// MODE SWITCH
+function setMode(mode) {
+  document.querySelectorAll('.mode-tab').forEach((t,i)=>t.classList.toggle('active',i===(mode==='manual'?0:1)));
+  document.getElementById('manual-panel').style.display = mode==='manual'?'block':'none';
+  document.getElementById('ai-panel').style.display = mode==='ai'?'block':'none';
+  const mainNav = document.getElementById('main-nav');
+  const aiChat = document.getElementById('ai-chat-page');
+  if(mode==='ai'){
+    mainNav.style.display='none';
+    document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+    aiChat.classList.add('active');
+  } else {
+    mainNav.style.display='flex';
+    aiChat.classList.remove('active');
+    showPage('results-page');
+  }
+}
+
+function setFuel(v){
+  fuelIncluded=v;
+  document.getElementById('tbtn-yes').classList.toggle('on',v);
+  document.getElementById('tbtn-no').classList.toggle('on',!v);
+  document.getElementById('fuel-section').style.opacity=v?'0.4':'1';
+  document.getElementById('fuel-section').style.pointerEvents=v?'none':'auto';
+}
+
+function showPage(id){
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  document.querySelectorAll('.nav-tab').forEach((t,i)=>{
+    t.classList.toggle('active',['results-page','recap-page','compare-page'][i]===id);
+  });
+  if(id==='compare-page') renderCompare();
+}
+
+function cosCalc(p){
+  const km=p.distAR*p.trips;
+  const litres=km*p.consoL100/100;
+  const fuelCost=p.fuelIncluded?0:litres*p.fuelPriceXOF;
+  const cosDay=p.rentPerDay+fuelCost+p.otherCosts;
+  const cosMon=cosDay*p.daysPerMonth;
+  const sp=cosMon/(1-p.margin/100);
+  const costSeat=cosDay/p.seats;
+  const tktR=sp/((p.beu/100)*p.seats*p.daysPerMonth);
+  const tktO=tktR/2;
+  return{kmPerDay:km,litresPerDay:litres,fuelCostDay:fuelCost,cosDay,cosMonth:cosMon,sp,costPerSeat:costSeat,ticketRound:tktR,ticketOne:tktO};
+}
+
+function renderResults(params, results, label){
+  currentResult={params,results};
+  document.getElementById('results-empty').style.display='none';
+  document.getElementById('results-content').style.display='block';
+  document.getElementById('recap-empty').style.display='none';
+  document.getElementById('recap-content').style.display='block';
+
+  document.getElementById('fuel-info-bar').innerHTML=params.fuelIncluded
+    ?`<i class="ti ti-gas-station" aria-hidden="true"></i> Carburant <b>inclus</b> dans le prix de location — aucun coût additionnel.<span class="tag grn">INCLUS</span>`
+    :`<i class="ti ti-gas-station" aria-hidden="true"></i> ${fmt(results.kmPerDay)} km/j × ${params.consoL100} L/100 = <b>${results.litresPerDay.toFixed(1)} L/j</b> × ${fmt(params.fuelPriceXOF)} XOF = <b>${fmt(results.fuelCostDay)} XOF/j</b><span class="tag red">À VOTRE CHARGE</span>`;
+
+  document.getElementById('cards-costs').innerHTML=`
+    <div class="rcard"><div class="rlbl">Location / jour</div><div class="rval">${fmt(params.rentPerDay)}</div><div class="rsub">XOF</div></div>
+    <div class="rcard ${params.fuelIncluded?'':'a'}"><div class="rlbl">Carburant / jour</div><div class="rval">${fmt(results.fuelCostDay)}</div><div class="rsub">XOF ${params.fuelIncluded?'(inclus)':'(à votre charge)'}</div></div>
+    <div class="rcard"><div class="rlbl">Autres frais / jour</div><div class="rval">${fmt(params.otherCosts)}</div><div class="rsub">XOF</div></div>
+    <div class="rcard a"><div class="rlbl">COS total / jour</div><div class="rval">${fmt(results.cosDay)}</div><div class="rsub">XOF</div></div>`;
+
+  document.getElementById('cards-pricing').innerHTML=`
+    <div class="rcard"><div class="rlbl">COS / mois (${params.daysPerMonth} j)</div><div class="rval">${fmt(results.cosMonth)}</div><div class="rsub">XOF</div></div>
+    <div class="rcard b"><div class="rlbl">Prix de vente (SP)</div><div class="rval">${fmt(results.sp)}</div><div class="rsub">marge ${params.margin}%</div></div>
+    <div class="rcard g"><div class="rlbl">Ticket A/R / siège</div><div class="rval">${fmt(results.ticketRound)}</div><div class="rsub">BEU ${params.beu}%</div></div>
+    <div class="rcard g"><div class="rlbl">Ticket aller simple</div><div class="rval">${fmt(results.ticketOne)}</div><div class="rsub">XOF</div></div>`;
+
+  const rows=[
+    ['Location véhicule',fmt(params.rentPerDay),fmt(params.rentPerDay*params.daysPerMonth)],
+    !params.fuelIncluded?['Carburant',fmt(results.fuelCostDay),fmt(results.fuelCostDay*params.daysPerMonth)]:null,
+    params.otherCosts>0?['Autres frais',fmt(params.otherCosts),fmt(params.otherCosts*params.daysPerMonth)]:null,
+    ['total','COS total',fmt(results.cosDay),fmt(results.cosMonth)],
+    ['Prix de vente (SP)','—',fmt(results.sp)],
+    ['Coût par siège A/R',fmt(results.costPerSeat),'—'],
+    ['Ticket A/R (BEU '+params.beu+'%)',fmt(results.ticketRound),'—'],
+    ['Ticket aller simple',fmt(results.ticketOne),'—'],
+  ].filter(Boolean);
+  document.getElementById('recap-body').innerHTML=rows.map(r=>{
+    if(r[0]==='total') return`<tr class="ttl"><td>${r[1]}</td><td class="r">${r[2]}</td><td class="r">${r[3]}</td></tr>`;
+    return`<tr><td style="color:var(--text2)">${r[0]}</td><td class="r">${r[1]}</td><td class="r">${r[2]}</td></tr>`;
+  }).join('');
+
+  if(label){
+    const existing=scenarios.findIndex(s=>s.label===label);
+    if(existing>=0) scenarios[existing]={label,params,results};
+    else scenarios.push({label,params,results});
+  }
+}
+
+function calcManual(){
+  const params={
+    seats:+document.getElementById('seats').value||14,
+    rentPerDay:+document.getElementById('rent').value||0,
+    fuelIncluded,
+    distAR:+document.getElementById('dist').value||60,
+    trips:+document.getElementById('trips').value||2,
+    consoL100:+document.getElementById('conso').value||12,
+    fuelPriceXOF:+document.getElementById('fprice').value||670,
+    daysPerMonth:+document.getElementById('daysmonth').value||22,
+    margin:+document.getElementById('margin').value||20,
+    beu:+document.getElementById('breakeven').value||70,
+    otherCosts:+document.getElementById('othercosts').value||0,
+  };
+  const results=cosCalc(params);
+  renderResults(params,results,`Scénario ${scenarios.length+1} — ${fmt(params.rentPerDay)} XOF/j (${params.seats} places)`);
+  showPage('results-page');
+}
+
+// COMPARE
+function renderCompare(){
+  if(!scenarios.length){
+    document.getElementById('scen-cards').innerHTML='<div style="color:var(--text3);font-size:13px;padding:20px">Aucun scénario calculé. Utilisez le formulaire pour créer des scénarios.</div>';
+    document.getElementById('comp-table-wrap').style.display='none';
+    return;
+  }
+  const minTkt=Math.min(...scenarios.map(s=>s.results.ticketOne));
+  const maxTkt=Math.max(...scenarios.map(s=>s.results.ticketOne));
+  document.getElementById('scen-cards').innerHTML=scenarios.map((s,i)=>{
+    const isBest=s.results.ticketOne===minTkt&&scenarios.length>1;
+    const isHigh=s.results.ticketOne===maxTkt&&scenarios.length>1;
+    const badge=isBest?'<span class="badge best">Meilleur prix</span>':isHigh?'<span class="badge hi">Plus cher</span>':'<span class="badge mid">Intermédiaire</span>';
+    return`<div class="scen-card ${isBest?'best':''}">
+      <div class="scen-name">${s.label} ${scenarios.length>1?badge:''} <button onclick="removeScen(${i})" style="margin-left:auto;background:transparent;border:none;cursor:pointer;color:var(--text3);font-size:12px"><i class="ti ti-x"></i></button></div>
+      <div class="scen-metrics">
+        <div class="sm a"><div class="sm-l">COS / jour</div><div class="sm-v">${fmt(s.results.cosDay)} <span style="font-size:10px;font-weight:400">XOF</span></div></div>
+        <div class="sm b"><div class="sm-l">SP / mois</div><div class="sm-v">${fmt(s.results.sp)} <span style="font-size:10px;font-weight:400">XOF</span></div></div>
+        <div class="sm g"><div class="sm-l">Ticket A/R</div><div class="sm-v">${fmt(s.results.ticketRound)} <span style="font-size:10px;font-weight:400">XOF</span></div></div>
+        <div class="sm g"><div class="sm-l">Aller simple</div><div class="sm-v">${fmt(s.results.ticketOne)} <span style="font-size:10px;font-weight:400">XOF</span></div></div>
+      </div>
+    </div>`;
+  }).join('');
+
+  if(scenarios.length>1){
+    document.getElementById('comp-table-wrap').style.display='block';
+    const hdrs=['Indicateur',...scenarios.map(s=>s.label)].map(h=>`<th>${h}</th>`).join('');
+    const rows=[
+      ['Places',...scenarios.map(s=>s.params.seats)],
+      ['Location / jour (XOF)',...scenarios.map(s=>fmt(s.params.rentPerDay))],
+      ['Carburant / jour (XOF)',...scenarios.map(s=>fmt(s.results.fuelCostDay))],
+      ['COS total / jour (XOF)',...scenarios.map(s=>fmt(s.results.cosDay))],
+      ['COS total / mois (XOF)',...scenarios.map(s=>fmt(s.results.cosMonth))],
+      ['SP / mois (XOF)',...scenarios.map(s=>fmt(s.results.sp))],
+      ['Coût / siège A/R (XOF)',...scenarios.map(s=>fmt(s.results.costPerSeat))],
+      ['Ticket A/R (XOF)',...scenarios.map(s=>fmt(s.results.ticketRound))],
+      ['Ticket aller simple (XOF)',...scenarios.map(s=>fmt(s.results.ticketOne))],
+    ];
+    document.getElementById('comp-table').innerHTML=`<thead><tr>${hdrs}</tr></thead><tbody>`+
+      rows.map(r=>`<tr><td style="color:var(--text2)">${r[0]}</td>${r.slice(1).map(v=>`<td class="r">${v}</td>`).join('')}</tr>`).join('')+'</tbody>';
+  } else {
+    document.getElementById('comp-table-wrap').style.display='none';
+  }
+}
+function removeScen(i){scenarios.splice(i,1);renderCompare()}
+function addScenario(){setMode('manual');showPage('results-page')}
+
+// AI CHAT
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendMessage()}}
+function useSuggestion(txt){setMode('ai');document.getElementById('chat-input').value=txt}
+function sendSuggestion(el){document.getElementById('chat-input').value=el.innerText;sendMessage()}
+
+async function sendMessage(){
+  const input=document.getElementById('chat-input');
+  const text=input.value.trim();
+  if(!text)return;
+  input.value='';
+  document.getElementById('suggestions').style.display='none';
+  addMsg('user',text);
+  showTyping();
+  document.getElementById('send-btn').disabled=true;
+
+  try{
+    const resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({
+        model:'claude-sonnet-4-6',
+        max_tokens:1000,
+        system:SYSTEM_PROMPT,
+        messages:[{role:'user',content:text}]
+      })
+    });
+    const data=await resp.json();
+    removeTyping();
+    const raw=data.content?.[0]?.text||'{}';
+    let parsed;
+    try{parsed=JSON.parse(raw.replace(/```json|```/g,'').trim())}catch{parsed=null}
+    if(parsed&&parsed.results){
+      showAIResult(parsed);
+      renderResults(parsed.params,parsed.results,text.slice(0,40)+'…');
+    } else {
+      addMsg('ai','Désolé, je n\'ai pas pu analyser votre demande. Pouvez-vous préciser le prix de location, le nombre de places et si le carburant est inclus ?');
+    }
+  }catch(err){
+    removeTyping();
+    addMsg('ai','Erreur de connexion à l\'agent IA. Vérifiez votre connexion internet.');
+  }
+  document.getElementById('send-btn').disabled=false;
+}
+
+function addMsg(role,text){
+  const div=document.createElement('div');
+  div.className=`msg ${role}`;
+  div.innerHTML=`<div class="bubble">${text}</div><div class="msg-time">${role==='user'?'Vous':'Agent COS'}</div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+}
+
+function showTyping(){
+  const div=document.createElement('div');
+  div.className='msg ai';div.id='typing';
+  div.innerHTML=`<div class="bubble" style="padding:8px 14px"><div class="typing-indicator"><div class="dot"></div><div class="dot"></div><div class="dot"></div></div></div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+}
+function removeTyping(){const t=document.getElementById('typing');if(t)t.remove()}
+
+function showAIResult(parsed){
+  const r=parsed.results;const p=parsed.params;
+  const alertsHtml=(parsed.alerts||[]).map(a=>`<div class="arc-alert"><i class="ti ti-alert-triangle" style="font-size:14px;flex-shrink:0"></i> ${a}</div>`).join('');
+  const assumHtml=(parsed.assumptions||[]).map(a=>`<span>${a}</span>`).join('');
+  const cardHtml=`<div class="ai-result-card">
+    <div class="arc-header"><i class="ti ti-chart-bar" style="margin-right:4px"></i> Résultats COS — ${p.seats} places / ${fmt(p.rentPerDay)} XOF/j</div>
+    <div class="arc-body">
+      <div class="arc-grid">
+        <div class="arc-metric a"><div class="arc-lbl">COS / jour</div><div class="arc-val">${fmt(r.cosDay)} XOF</div></div>
+        <div class="arc-metric b"><div class="arc-lbl">Prix de vente (SP)</div><div class="arc-val">${fmt(r.sp)} XOF/mois</div></div>
+        <div class="arc-metric g"><div class="arc-lbl">Ticket A/R</div><div class="arc-val">${fmt(r.ticketRound)} XOF</div></div>
+        <div class="arc-metric g"><div class="arc-lbl">Aller simple</div><div class="arc-val">${fmt(r.ticketOne)} XOF</div></div>
+      </div>
+      ${alertsHtml}
+      <div class="arc-analysis">${parsed.analysis}</div>
+      ${assumHtml?`<div class="arc-assumptions">Hypothèses : ${assumHtml}</div>`:''}
+    </div>
+  </div>`;
+  const div=document.createElement('div');
+  div.className='msg ai';
+  div.innerHTML=cardHtml+`<div class="msg-time">Agent COS</div>`;
+  document.getElementById('chat-messages').appendChild(div);
+  div.scrollIntoView({behavior:'smooth'});
+}
+
+setFuel(false);
+</script>
+</body>
+</html>
